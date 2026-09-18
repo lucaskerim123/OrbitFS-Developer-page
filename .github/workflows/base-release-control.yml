@@ -20,15 +20,23 @@ on:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   dispatch:
     runs-on: ubuntu-latest
     steps:
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: \${{ secrets.ORBITFS_RELEASE_APP_ID }}
+          private-key: \${{ secrets.ORBITFS_RELEASE_APP_PRIVATE_KEY }}
+          owner: lucaskerim123
+          repositories: V1-vercel-base
+
       - name: Dispatch Base release workflow
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: \${{ steps.app-token.outputs.token }}
           VERSION: \${{ inputs.version }}
           CHANNEL: \${{ inputs.channel }}
           SOURCE_REF: \${{ inputs.source_ref }}
@@ -40,4 +48,3 @@ jobs:
             -f version="$VERSION" \
             -f channel="$CHANNEL"
           echo "Base release workflow dispatched for V1-vercel-base@$SOURCE_REF, version $VERSION."
-          echo "The existing V1-vercel-base workflow performs validation, packaging and License Master handoff."
