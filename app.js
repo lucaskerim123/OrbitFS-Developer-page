@@ -143,6 +143,7 @@ $("update-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!token && !(await checkConnection())) return dialog.showModal();
   const version = $("update-version").value.trim();
+  const channel = $("update-channel").value.trim();
   const source_ref = $("update-ref").value.trim();
   const apex = $("addon-apex").checked;
   const mcp = $("addon-mcp").checked;
@@ -153,7 +154,7 @@ $("update-form").addEventListener("submit", async (event) => {
     return;
   }
   try {
-    await dispatchWorkflow(UPDATE_WORKFLOW, { version, source_ref, apex: String(apex), mcp: String(mcp), studio: String(studio), minimum_deployer_protocol });
+    await dispatchWorkflow(UPDATE_WORKFLOW, { version, channel, source_ref, apex: String(apex), mcp: String(mcp), studio: String(studio), minimum_deployer_protocol });
     showToast("Update release control job started.");
     refreshRuns();
   } catch (error) {
