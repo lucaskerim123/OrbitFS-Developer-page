@@ -1,0 +1,43 @@
+name: OrbitFS Base Release Control
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Base release SemVer"
+        required: true
+        type: string
+      channel:
+        description: "Release channel"
+        required: true
+        default: stable
+        type: string
+      source_ref:
+        description: "Source branch/ref in V1-vercel-base"
+        required: true
+        default: base-release
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch Base release workflow
+        env:
+          GH_TOKEN: \${{ github.token }}
+          VERSION: \${{ inputs.version }}
+          CHANNEL: \${{ inputs.channel }}
+          SOURCE_REF: \${{ inputs.source_ref }}
+        run: |
+          set -euo pipefail
+          gh workflow run release-to-license-master.yml \
+            --repo lucaskerim123/V1-vercel-base \
+            --ref "$SOURCE_REF" \
+            -f version="$VERSION" \
+            -f channel="$CHANNEL"
+          echo "Base release workflow dispatched for V1-vercel-base@$SOURCE_REF, version $VERSION."
+          echo "The existing V1-vercel-base workflow performs validation, packaging and License Master handoff."
