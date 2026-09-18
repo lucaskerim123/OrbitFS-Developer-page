@@ -7,6 +7,11 @@ on:
         description: "Global OrbitFS update version"
         required: true
         type: string
+      channel:
+        description: Release delivery channel (stable, beta, dev, or custom Billing Store channel)
+        required: true
+        default: stable
+        type: string
       source_ref:
         description: "Engine source branch/ref"
         required: true
@@ -64,6 +69,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           VERSION: ${{ inputs.version }}
+          CHANNEL: ${{ inputs.channel }}
           SOURCE_REF: ${{ inputs.source_ref }}
           APEX: ${{ inputs.apex }}
           MCP: ${{ inputs.mcp }}
@@ -75,6 +81,7 @@ jobs:
             --repo lucaskerim123/V1-vercel-engine \
             --ref "$SOURCE_REF" \
             -f version="$VERSION" \
+            -f channel="$CHANNEL" \
             -f apex="$APEX" \
             -f mcp="$MCP" \
             -f studio="$STUDIO" \
