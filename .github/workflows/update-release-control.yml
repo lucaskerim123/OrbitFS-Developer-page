@@ -42,9 +42,9 @@ jobs:
     steps:
       - name: Require at least one component
         env:
-          APEX: \${{ inputs.apex }}
-          MCP: \${{ inputs.mcp }}
-          STUDIO: \${{ inputs.studio }}
+          APEX: ${{ inputs.apex }}
+          MCP: ${{ inputs.mcp }}
+          STUDIO: ${{ inputs.studio }}
         run: |
           if [ "$APEX" != "true" ] && [ "$MCP" != "true" ] && [ "$STUDIO" != "true" ]; then
             echo "::error::Select at least one Engine component."
@@ -55,20 +55,20 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: \${{ secrets.ORBITFS_RELEASE_APP_ID }}
-          private-key: \${{ secrets.ORBITFS_RELEASE_APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.ORBITFS_RELEASE_APP_ID }}
+          private-key: ${{ secrets.ORBITFS_RELEASE_APP_PRIVATE_KEY }}
           owner: lucaskerim123
           repositories: V1-vercel-engine
 
       - name: Dispatch Engine update workflow
         env:
-          GH_TOKEN: \${{ steps.app-token.outputs.token }}
-          VERSION: \${{ inputs.version }}
-          SOURCE_REF: \${{ inputs.source_ref }}
-          APEX: \${{ inputs.apex }}
-          MCP: \${{ inputs.mcp }}
-          STUDIO: \${{ inputs.studio }}
-          PROTOCOL: \${{ inputs.minimum_deployer_protocol }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ inputs.version }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          APEX: ${{ inputs.apex }}
+          MCP: ${{ inputs.mcp }}
+          STUDIO: ${{ inputs.studio }}
+          PROTOCOL: ${{ inputs.minimum_deployer_protocol }}
         run: |
           set -euo pipefail
           gh workflow run publish-engine-release.yml \
