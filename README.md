@@ -1,36 +1,61 @@
 # OrbitFS Developer Control Panel
 
-Developer-only control plane for OrbitFS release orchestration.
+Developer-only control panel for the existing OrbitFS release workflow.
 
-## System boundary
+## What this site does
 
-1. License Authority — lucaskerim123/Custom-licence-manager
-2. Billing / Customer Portal — lucaskerim123/V2_Billing_Store
-3. Deployment Auto Release System — lucaskerim123/OrbitFS-Developer-page
+This repository is the **developer release control surface**. It does not issue, store, validate or enforce customer licenses.
 
-The existing License Manager and Billing Store are not modified by this repository.
+The page gives a simple UI for launching the existing GitHub Actions release jobs and watching their status without having to live on Actions screens.
 
-## Base Deployment System
+### Base
 
-base-release in V1-vercel-base → validate/build/package → existing License Master release API → Billing Store review/publish → customer Base Deployer.
+`base-release` in `V1-vercel-base` → existing Base control workflow → existing `release-to-license-master.yml` job → validation/build/package → License Master handoff.
 
-The control workflow in this repository dispatches the existing release-to-license-master.yml workflow in V1-vercel-base.
+### Updates
 
-## Update Release System
+`UPDATE_RELEASE` in `V1-vercel-engine` → existing Update control workflow → existing `publish-engine-release.yml` job → release analysis/packaging → existing release handoff.
 
-UPDATE_RELEASE in V1-vercel-engine → selected APEX/MCP/Studio changes → release analysis → package → existing Store/License release path → Billing Store review/publish → customer update deployer.
+OrbitFS is the product:
 
-The control workflow dispatches the existing publish-engine-release.yml workflow in V1-vercel-engine.
+- `orbitfs_base` = the OrbitFS base product/license.
+- APEX, MCP and Studio = add-ons to that base product.
 
-## GitHub App
+License Manager remains the authority for licensing, installations and deployment state. Billing Store remains the customer/admin portal and customer deployment/update surface.
 
-The Pages frontend never receives credentials. The two control workflows use a GitHub App installation token to dispatch the existing workflows in the source repositories.
+## Browser setup
 
-Required repository secrets:
+The control page needs a GitHub token because GitHub Pages is static and must not contain a GitHub App private key.
 
-- ORBITFS_RELEASE_APP_ID
-- ORBITFS_RELEASE_APP_PRIVATE_KEY
+1. Create a fine-grained GitHub token for the developer account with access to this repository and permission to run Actions.
+2. Open the Developer Control Panel and use **Setup → Connect & Check**.
+3. The token is kept only in this browser session and is sent to GitHub's API.
+4. The privileged cross-repository operation is still performed by the existing GitHub App token inside the control workflows.
 
-Install the GitHub App on V1-vercel-base and V1-vercel-engine with Actions write permission.
+## GitHub App / Actions setup
 
-This is the first control-plane layer. It does not replace License Master or Billing Store.
+The existing control workflows use the Marketplace action:
+
+`actions/create-github-app-token@v2`
+
+Required secrets in this repository:
+
+- `ORBITFS_RELEASE_APP_ID`
+- `ORBITFS_RELEASE_APP_PRIVATE_KEY`
+
+The installed GitHub App needs Actions write access to:
+
+- `V1-vercel-base`
+- `V1-vercel-engine`
+
+The existing source release jobs remain the execution layer. This repository does not replace them.
+
+## Pages deployment
+
+`.github/workflows/pages-deploy.yml` uses the standard GitHub Pages Marketplace actions to publish `index.html`, `styles.css` and `app.js` on every push to `main`.
+
+## Repository boundary
+
+1. **Custom-licence-manager** — licensing authority, license/install/deployment state and enforcement.
+2. **V2_Billing_Store** — customer/admin portal and customer deployment/update experience.
+3. **OrbitFS-Developer-page** — developer-only release control UI and Actions orchestration.
