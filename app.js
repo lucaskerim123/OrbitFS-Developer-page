@@ -4,8 +4,15 @@ const SOURCES={
   update:{repo:"lucaskerim123/V1-vercel-engine",workflow:"publish-engine-release.yml",ref:"UPDATE_RELEASE",controlWorkflow:"update-release-control.yml",label:"Engine Update"}
 };
 const API="https://api.github.com";
-let token=sessionStorage.getItem("orbitfs_github_token")||"";
+const TOKEN_KEY="orbitfs_github_token";
+const TRACKING_KEY="orbitfs_release_jobs";
+let token=localStorage.getItem(TOKEN_KEY)||"";
 let polling=null;
+let releaseJobs=JSON.parse(localStorage.getItem(TRACKING_KEY)||"[]");
+const lastDetected={base:[],update:[]};
+function saveReleaseJobs(){localStorage.setItem(TRACKING_KEY,JSON.stringify(releaseJobs.slice(0,50)))}
+function rememberReleaseJob(job){releaseJobs=[job,...releaseJobs.filter(x=>x.key!==job.key)].slice(0,50);saveReleaseJobs()}
+function updateTrackedRun(key,patch){const i=releaseJobs.findIndex(x=>x.key===key);if(i>=0){releaseJobs[i]={...releaseJobs[i],...patch};saveReleaseJobs()}}
 
 const $=id=>document.getElementById(id),badge=$("connection-badge"),dialog=$("setup-dialog"),tokenInput=$("github-token");
 const message=$("setup-message"),runList=$("run-list"),toast=$("toast");
@@ -25,7 +32,21 @@ async function checkConnection(){
 }
 async function dispatch(source,inputs){
   const cfg=SOURCES[source];
+  const job={key:crypto.randomUUID(),source,sourceRepo:cfg.repo,sourceWorkflow:cfg.workflow,inputs:{...inputs},changedFiles:inputs.changed_files||[],submittedAt:new Date().toISOString(),status:"queued"};
+  rememberReleaseJob(job);
   await github(`/repos/${REPO}/actions/workflows/${cfg.controlWorkflow}/dispatches`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:"main",inputs})});
+  setTimeout(()=>findDispatchedRun(job),1500);
+  return job;
+}
+async function findDispatchedRun(job){
+  try{
+    const branch=job.inputs.source_ref||SOURCES[job.source].ref;
+    const data=await github(`/repos/${job.sourceRepo}/actions/runs?event=workflow_dispatch&branch=${encodeURIComponent(branch)}&per_page=20`);
+    const submitted=Date.parse(job.submittedAt);
+    const run=(data.workflow_runs||[]).find(r=>Date.parse(r.created_at)>=submitted-10000);
+    if(run){updateTrackedRun(job.key,{runId:run.id,runNumber:run.run_number,runUrl:run.html_url,status:run.status,conclusion:run.conclusion});await refreshRuns()}
+    else setTimeout(()=>findDispatchedRun(job),2500);
+  }catch{}
 }
 function stateClass(status,conclusion){if(status!=="completed")return"state-progress";if(conclusion==="success")return"state-success";if(conclusion==="failure"||conclusion==="cancelled")return"state-failure";return"state-neutral"}
 function stateText(status,conclusion){return status!=="completed"?"running":(conclusion||"completed")}
@@ -52,6 +73,7 @@ function detectComponents(files){
   return {apex:paths.some(p=>p.includes("apex")||p.includes("sorter")||p.includes("converter")),mcp:paths.some(p=>p.includes("mcp")),studio:paths.some(p=>p.includes("studio")),files:files.length};
 }
 function renderDetection(source,files){
+  lastDetected[source]=files.slice(0,150).map(f=>({filename:f.filename,status:f.status||"M",additions:f.additions||0,deletions:f.deletions||0}));
   const target=$(source==="base"?"base-detection":"update-detection");
   if(!files.length){target.innerHTML="<strong>No changed files returned.</strong>";return}
   const d=detectComponents(files);
@@ -82,7 +104,7 @@ runList.addEventListener("click",async e=>{
 $("setup-form").addEventListener("submit",async e=>{
   e.preventDefault();const candidate=tokenInput.value.trim();if(!candidate)return;
   const old=token;token=candidate;message.textContent="Checking GitHub access…";
-  try{await checkConnection();sessionStorage.setItem("orbitfs_github_token",token);dialog.close();showToast("GitHub connected.");await refreshRuns();startPolling()}
+  try{await checkConnection();localStorage.setItem(TOKEN_KEY,token);dialog.close();showToast("GitHub connected.");await refreshRuns();startPolling()}
   catch(error){token=old;setConnected(false);message.textContent=error.message}
 });
 $("base-draft").addEventListener("click",()=>draft("base","base-notes","base-version","base-ref"));
@@ -91,13 +113,13 @@ $("base-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
   const version=$("base-version").value.trim(),channel=$("base-channel").value;
   if(!version){showToast("Version is required.");return}
-  try{const notes=$("base-notes").value.trim();const run=await dispatch("base",{version,channel,notes});showToast(run?.workflow_run?.id?`Base build queued (#${run.workflow_run.run_number||"?"}).`:"Base release workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
+  try{const notes=$("base-notes").value.trim();const run=await dispatch("base",{version,channel,notes,source_ref:SOURCES.base.ref,changed_files:lastDetected.base});showToast(run?.workflow_run?.id?`Base build queued (#${run.workflow_run.run_number||"?"}).`:"Base release workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 $("update-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
   const apex=$("addon-apex").checked,mcp=$("addon-mcp").checked,studio=$("addon-studio").checked;
   if(!apex&&!mcp&&!studio){showToast("Detect changes or select at least one component.");return}
-  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),notes:$("update-notes").value.trim()};
+  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,source_ref:SOURCES.update.ref,apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),notes:$("update-notes").value.trim(),changed_files:lastDetected.update};
   try{const run=await dispatch("update",inputs);showToast(run?.workflow_run?.id?`Engine update queued (#${run.workflow_run.run_number||"?"}).`:"Engine update workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 function startPolling(){clearInterval(polling);polling=setInterval(()=>{if(document.visibilityState==="visible")refreshRuns()},5000)}
