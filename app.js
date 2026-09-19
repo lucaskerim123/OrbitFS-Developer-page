@@ -6,7 +6,8 @@ const SOURCES={
 const API="https://api.github.com";
 const TOKEN_KEY="orbitfs_github_token";
 const TRACKING_KEY="orbitfs_release_jobs";
-let token=localStorage.getItem(TOKEN_KEY)||"";
+let token=localStorage.getItem(TOKEN_KEY)||sessionStorage.getItem("orbitfs_github_token")||"";
+if(token&&!localStorage.getItem(TOKEN_KEY))localStorage.setItem(TOKEN_KEY,token);
 let polling=null;
 let releaseJobs=JSON.parse(localStorage.getItem(TRACKING_KEY)||"[]");
 const lastDetected={base:[],update:[]};
@@ -32,7 +33,7 @@ async function checkConnection(){
 }
 async function dispatch(source,inputs){
   const cfg=SOURCES[source];
-  const job={key:crypto.randomUUID(),source,sourceRepo:cfg.repo,sourceWorkflow:cfg.workflow,inputs:{...inputs},changedFiles:inputs.changed_files||[],submittedAt:new Date().toISOString(),status:"queued"};
+  const job={key:crypto.randomUUID(),source,sourceRepo:cfg.repo,sourceWorkflow:cfg.workflow,inputs:{...inputs},changedFiles:typeof inputs.changed_files==="string"?(()=>{try{return JSON.parse(inputs.changed_files)}catch{return []}})():inputs.changed_files||[],submittedAt:new Date().toISOString(),status:"queued"};
   rememberReleaseJob(job);
   await github(`/repos/${REPO}/actions/workflows/${cfg.controlWorkflow}/dispatches`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:"main",inputs})});
   setTimeout(()=>findDispatchedRun(job),1500);
@@ -112,12 +113,14 @@ $("base-draft").addEventListener("click",()=>draft("base","base-notes","base-ver
 $("update-draft").addEventListener("click",()=>draft("update","update-notes","update-version","update-ref"));
 $("base-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
+  if(!lastDetected.base.length)await draft("base","base-notes","base-version","base-ref");
   const version=$("base-version").value.trim(),channel=$("base-channel").value;
   if(!version){showToast("Version is required.");return}
   try{const notes=$("base-notes").value.trim();const run=await dispatch("base",{version,channel,notes});showToast(run?.workflow_run?.id?`Base build queued (#${run.workflow_run.run_number||"?"}).`:"Base release workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 $("update-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
+  if(!lastDetected.update.length)await draft("update","update-notes","update-version","update-ref");
   const apex=$("addon-apex").checked,mcp=$("addon-mcp").checked,studio=$("addon-studio").checked;
   if(!apex&&!mcp&&!studio){showToast("Detect changes or select at least one component.");return}
   const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,source_ref:SOURCES.update.ref,apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),notes:$("update-notes").value.trim(),changed_files:JSON.stringify(lastDetected.update)};
