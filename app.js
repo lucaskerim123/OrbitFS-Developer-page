@@ -114,13 +114,13 @@ $("base-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
   const version=$("base-version").value.trim(),channel=$("base-channel").value;
   if(!version){showToast("Version is required.");return}
-  try{const notes=$("base-notes").value.trim();const run=await dispatch("base",{version,channel,notes,source_ref:SOURCES.base.ref,changed_files:lastDetected.base});showToast(run?.workflow_run?.id?`Base build queued (#${run.workflow_run.run_number||"?"}).`:"Base release workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
+  try{const notes=$("base-notes").value.trim();const run=await dispatch("base",{version,channel,notes});showToast(run?.workflow_run?.id?`Base build queued (#${run.workflow_run.run_number||"?"}).`:"Base release workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 $("update-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
   const apex=$("addon-apex").checked,mcp=$("addon-mcp").checked,studio=$("addon-studio").checked;
   if(!apex&&!mcp&&!studio){showToast("Detect changes or select at least one component.");return}
-  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,source_ref:SOURCES.update.ref,apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),notes:$("update-notes").value.trim(),changed_files:lastDetected.update};
+  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,source_ref:SOURCES.update.ref,apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),notes:$("update-notes").value.trim(),changed_files:JSON.stringify(lastDetected.update)};
   try{const run=await dispatch("update",inputs);showToast(run?.workflow_run?.id?`Engine update queued (#${run.workflow_run.run_number||"?"}).`:"Engine update workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 function startPolling(){clearInterval(polling);polling=setInterval(()=>{if(document.visibilityState==="visible")refreshRuns()},5000)}
