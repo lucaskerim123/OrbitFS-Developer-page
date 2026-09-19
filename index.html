@@ -56,7 +56,6 @@
       <label><span>Version</span><input id="base-version" placeholder="1.0.2" required inputmode="decimal"></label>
       <label><span>Channel</span><select id="base-channel"><option value="stable">Stable</option><option value="beta">Beta</option><option value="dev">Development</option></select></label>
     </div>
-    <label><span>Source ref</span><input id="base-ref" value="base-release" required></label>
     <label><span>Release notes</span><textarea id="base-notes" placeholder="Generate a draft from the source diff before running the build."></textarea></label>
     <div class="action-row"><button class="button" type="button" id="base-draft">Detect changes & draft changelog</button><button class="button primary" type="submit">Run Base Build</button></div>
   </form>
@@ -72,7 +71,6 @@
       <label><span>Version</span><input id="update-version" placeholder="1.0.2" required inputmode="decimal"></label>
       <label><span>Channel</span><select id="update-channel"><option value="stable">Stable</option><option value="beta">Beta</option><option value="dev">Development</option></select></label>
     </div>
-    <label><span>Source ref</span><input id="update-ref" value="UPDATE_RELEASE" required></label>
     <div class="addon-grid">
       <label class="check"><input id="addon-apex" type="checkbox"><span>APEX</span></label>
       <label class="check"><input id="addon-mcp" type="checkbox"><span>MCP</span></label>

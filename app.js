@@ -25,7 +25,7 @@ async function checkConnection(){
 }
 async function dispatch(source,inputs){
   const cfg=SOURCES[source];
-  await github(`/repos/${cfg.repo}/actions/workflows/${cfg.workflow}/dispatches`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:inputs.source_ref,inputs})});
+  await github(`/repos/${cfg.repo}/actions/workflows/${cfg.workflow}/dispatches`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:cfg.ref,inputs,return_run_details:true})});
 }
 function stateClass(status,conclusion){if(status!=="completed")return"state-progress";if(conclusion==="success")return"state-success";if(conclusion==="failure"||conclusion==="cancelled")return"state-failure";return"state-neutral"}
 function stateText(status,conclusion){return status!=="completed"?"running":(conclusion||"completed")}
@@ -63,7 +63,7 @@ function renderDetection(source,files){
   target.innerHTML=`<strong>${escapeHtml(comps)}</strong> · ${d.files} changed file${d.files===1?"":"s"}<div class="detection-files">${listed}</div>`;
 }
 async function draft(source,notesId,versionId,refId){
-  const version=$(versionId).value.trim(),ref=$(refId).value.trim(),cfg=SOURCES[source];
+  const version=$(versionId).value.trim(),ref=SOURCES[source].ref,cfg=SOURCES[source];
   if(!version){showToast("Enter a version first.");return}
   try{
     const baseRef="main",data=await github(`/repos/${cfg.repo}/compare/${encodeURIComponent(baseRef)}...${encodeURIComponent(ref)}`);
@@ -89,16 +89,16 @@ $("base-draft").addEventListener("click",()=>draft("base","base-notes","base-ver
 $("update-draft").addEventListener("click",()=>draft("update","update-notes","update-version","update-ref"));
 $("base-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
-  const version=$("base-version").value.trim(),channel=$("base-channel").value,source_ref=$("base-ref").value.trim();
-  if(!version||!source_ref){showToast("Version and source ref are required.");return}
-  try{await dispatch("base",{version,channel,source_ref});showToast("Base release workflow queued.");setTimeout(refreshRuns,1400)}catch(error){showToast(error.message)}
+  const version=$("base-version").value.trim(),channel=$("base-channel").value;
+  if(!version){showToast("Version is required.");return}
+  try{const run=await dispatch("base",{version,channel});showToast(run?.workflow_run?.id?`Base build queued (#${run.workflow_run.run_number||"?"}).`:"Base release workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 $("update-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
   const apex=$("addon-apex").checked,mcp=$("addon-mcp").checked,studio=$("addon-studio").checked;
   if(!apex&&!mcp&&!studio){showToast("Detect changes or select at least one component.");return}
-  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,source_ref:$("update-ref").value.trim(),apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim()};
-  try{await dispatch("update",inputs);showToast("Engine update workflow queued.");setTimeout(refreshRuns,1400)}catch(error){showToast(error.message)}
+  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim()};
+  try{const run=await dispatch("update",inputs);showToast(run?.workflow_run?.id?`Engine update queued (#${run.workflow_run.run_number||"?"}).`:"Engine update workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 function startPolling(){clearInterval(polling);polling=setInterval(()=>{if(document.visibilityState==="visible")refreshRuns()},5000)}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&token){refreshRuns();startPolling()}});
