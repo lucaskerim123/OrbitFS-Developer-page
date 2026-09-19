@@ -33,6 +33,7 @@ jobs:
           private-key: ${{ secrets.ORBITFS_RELEASE_APP_PRIVATE_KEY }}
           owner: lucaskerim123
           repositories: V1-vercel-base
+          permission-actions: write
 
       - name: Dispatch Base release workflow
         env:
