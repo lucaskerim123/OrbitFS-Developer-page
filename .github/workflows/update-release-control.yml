@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Global OrbitFS update version"
+        description: "Independent Engine Update version (separate from Base version)"
         required: true
         type: string
       channel:
