@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       channel:
-        description: Release delivery channel (stable, beta, dev, or custom Billing Store channel)
+        description: "Release delivery channel (stable, beta, or dev)"
         required: true
         default: stable
         type: string
@@ -37,6 +37,10 @@ on:
         required: true
         default: "1"
         type: string
+      notes:
+        description: "Draft changelog from Developer Page"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -51,23 +55,15 @@ jobs:
           MCP: ${{ inputs.mcp }}
           STUDIO: ${{ inputs.studio }}
         run: |
+          set -euo pipefail
           if [ "$APEX" != "true" ] && [ "$MCP" != "true" ] && [ "$STUDIO" != "true" ]; then
             echo "::error::Select at least one Engine component."
             exit 1
           fi
 
-      - name: Create GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: Iv23linewJ05v7PcbAxa
-          private-key: ${{ secrets.ORBITFS_RELEASE_APP_PRIVATE_KEY }}
-          owner: lucaskerim123
-          repositories: V1-vercel-engine
-
       - name: Dispatch Engine update workflow
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.ORBITFS_RELEASE_DISPATCH_TOKEN }}
           VERSION: ${{ inputs.version }}
           CHANNEL: ${{ inputs.channel }}
           SOURCE_REF: ${{ inputs.source_ref }}
@@ -75,8 +71,10 @@ jobs:
           MCP: ${{ inputs.mcp }}
           STUDIO: ${{ inputs.studio }}
           PROTOCOL: ${{ inputs.minimum_deployer_protocol }}
+          NOTES: ${{ inputs.notes }}
         run: |
           set -euo pipefail
+          test -n "$GH_TOKEN" || { echo "::error::Missing ORBITFS_RELEASE_DISPATCH_TOKEN repository secret."; exit 1; }
           gh workflow run publish-engine-release.yml \
             --repo lucaskerim123/V1-vercel-engine \
             --ref "$SOURCE_REF" \
@@ -85,5 +83,6 @@ jobs:
             -f apex="$APEX" \
             -f mcp="$MCP" \
             -f studio="$STUDIO" \
-            -f minimum_deployer_protocol="$PROTOCOL"
+            -f minimum_deployer_protocol="$PROTOCOL" \
+            -f notes="$NOTES"
           echo "Engine update workflow dispatched for V1-vercel-engine@$SOURCE_REF, version $VERSION."
