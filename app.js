@@ -1,7 +1,7 @@
 const REPO="lucaskerim123/OrbitFS-Developer-page";
 const SOURCES={
-  base:{repo:"lucaskerim123/V1-vercel-base",workflow:"release-to-license-master.yml",ref:"base-release",label:"Base"},
-  update:{repo:"lucaskerim123/V1-vercel-engine",workflow:"publish-engine-release.yml",ref:"UPDATE_RELEASE",label:"Engine Update"}
+  base:{repo:"lucaskerim123/V1-vercel-base",workflow:"release-to-license-master.yml",ref:"base-release",controlWorkflow:"base-release-control.yml",label:"Base"},
+  update:{repo:"lucaskerim123/V1-vercel-engine",workflow:"publish-engine-release.yml",ref:"UPDATE_RELEASE",controlWorkflow:"update-release-control.yml",label:"Engine Update"}
 };
 const API="https://api.github.com";
 let token=sessionStorage.getItem("orbitfs_github_token")||"";
@@ -25,7 +25,7 @@ async function checkConnection(){
 }
 async function dispatch(source,inputs){
   const cfg=SOURCES[source];
-  await github(`/repos/${cfg.repo}/actions/workflows/${cfg.workflow}/dispatches`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:cfg.ref,inputs,return_run_details:true})});
+  await github(`/repos/${REPO}/actions/workflows/${cfg.controlWorkflow}/dispatches`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:"main",inputs})});
 }
 function stateClass(status,conclusion){if(status!=="completed")return"state-progress";if(conclusion==="success")return"state-success";if(conclusion==="failure"||conclusion==="cancelled")return"state-failure";return"state-neutral"}
 function stateText(status,conclusion){return status!=="completed"?"running":(conclusion||"completed")}
@@ -91,13 +91,13 @@ $("base-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
   const version=$("base-version").value.trim(),channel=$("base-channel").value;
   if(!version){showToast("Version is required.");return}
-  try{const run=await dispatch("base",{version,channel});showToast(run?.workflow_run?.id?`Base build queued (#${run.workflow_run.run_number||"?"}).`:"Base release workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
+  try{const notes=$("base-notes").value.trim();const run=await dispatch("base",{version,channel,notes});showToast(run?.workflow_run?.id?`Base build queued (#${run.workflow_run.run_number||"?"}).`:"Base release workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 $("update-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
   const apex=$("addon-apex").checked,mcp=$("addon-mcp").checked,studio=$("addon-studio").checked;
   if(!apex&&!mcp&&!studio){showToast("Detect changes or select at least one component.");return}
-  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim()};
+  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),notes:$("update-notes").value.trim()};
   try{const run=await dispatch("update",inputs);showToast(run?.workflow_run?.id?`Engine update queued (#${run.workflow_run.run_number||"?"}).`:"Engine update workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 function startPolling(){clearInterval(polling);polling=setInterval(()=>{if(document.visibilityState==="visible")refreshRuns()},5000)}
