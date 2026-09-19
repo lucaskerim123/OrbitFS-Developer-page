@@ -7,17 +7,19 @@ on:
         description: "Base release SemVer"
         required: true
         type: string
-
       channel:
         description: "Release channel"
         required: true
         default: stable
         type: string
-
       source_ref:
         description: "Source branch/ref in V1-vercel-base"
         required: true
         default: base-release
+        type: string
+      notes:
+        description: "Draft changelog from Developer Page"
+        required: false
         type: string
 
 permissions:
@@ -26,67 +28,30 @@ permissions:
 jobs:
   dispatch:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Normalize GitHub App private key
-        id: normalize-key
-        shell: bash
+      - name: Validate release inputs
         env:
-          APP_PRIVATE_KEY: ${{ secrets.ORBITFS_RELEASE_APP_PRIVATE_KEY }}
+          VERSION: ${{ inputs.version }}
+          CHANNEL: ${{ inputs.channel }}
         run: |
           set -euo pipefail
-
-          printf '%s' "$APP_PRIVATE_KEY" |
-            sed 's/\\n/\n/g' |
-            tr -d '\r' > "$RUNNER_TEMP/github-app.pem"
-
-          grep -q -- '-----BEGIN' "$RUNNER_TEMP/github-app.pem"
-          grep -q -- '-----END' "$RUNNER_TEMP/github-app.pem"
-
-          openssl rsa \
-            -in "$RUNNER_TEMP/github-app.pem" \
-            -check \
-            -noout
-
-          openssl pkcs8 \
-            -topk8 \
-            -nocrypt \
-            -in "$RUNNER_TEMP/github-app.pem" \
-            -out "$RUNNER_TEMP/github-app-pkcs8.pem"
-
-          {
-            echo 'key<<GITHUB_APP_KEY'
-            cat "$RUNNER_TEMP/github-app-pkcs8.pem"
-            echo 'GITHUB_APP_KEY'
-          } >> "$GITHUB_OUTPUT"
-
-          rm -f \
-            "$RUNNER_TEMP/github-app.pem" \
-            "$RUNNER_TEMP/github-app-pkcs8.pem"
-
-      - name: Create GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v3.1.1
-        with:
-          client-id: Iv23linewJ05v7PcbAxa
-          private-key: ${{ steps.normalize-key.outputs.key }}
-          owner: lucaskerim123
-          repositories: V1-vercel-base
-          permission-actions: write
+          test -n "$VERSION"
+          case "$CHANNEL" in stable|beta|dev) ;; *) echo "::error::Invalid release channel: $CHANNEL"; exit 1;; esac
 
       - name: Dispatch Base release workflow
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.ORBITFS_RELEASE_DISPATCH_TOKEN }}
           VERSION: ${{ inputs.version }}
           CHANNEL: ${{ inputs.channel }}
           SOURCE_REF: ${{ inputs.source_ref }}
+          NOTES: ${{ inputs.notes }}
         run: |
           set -euo pipefail
-
+          test -n "$GH_TOKEN" || { echo "::error::Missing ORBITFS_RELEASE_DISPATCH_TOKEN repository secret."; exit 1; }
           gh workflow run release-to-license-master.yml \
             --repo lucaskerim123/V1-vercel-base \
             --ref "$SOURCE_REF" \
             -f version="$VERSION" \
-            -f channel="$CHANNEL"
-
+            -f channel="$CHANNEL" \
+            -f notes="$NOTES"
           echo "Base release workflow dispatched for V1-vercel-base@$SOURCE_REF, version $VERSION."
