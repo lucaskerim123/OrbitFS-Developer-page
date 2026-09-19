@@ -41,6 +41,11 @@ on:
         description: "Draft changelog from Developer Page"
         required: false
         type: string
+      changed_files:
+        description: "JSON list of files detected by Developer Page"
+        required: false
+        default: "[]"
+        type: string
 
 permissions:
   contents: read
@@ -72,6 +77,7 @@ jobs:
           STUDIO: ${{ inputs.studio }}
           PROTOCOL: ${{ inputs.minimum_deployer_protocol }}
           NOTES: ${{ inputs.notes }}
+          CHANGED_FILES: ${{ inputs.changed_files }}
         run: |
           set -euo pipefail
           test -n "$GH_TOKEN" || { echo "::error::Missing ORBITFS_RELEASE_DISPATCH_TOKEN repository secret."; exit 1; }
@@ -84,5 +90,6 @@ jobs:
             -f mcp="$MCP" \
             -f studio="$STUDIO" \
             -f minimum_deployer_protocol="$PROTOCOL" \
-            -f notes="$NOTES"
+            -f notes="$NOTES" \
+            -f changed_files="$CHANGED_FILES"
           echo "Engine update workflow dispatched for V1-vercel-engine@$SOURCE_REF, version $VERSION."
