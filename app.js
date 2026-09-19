@@ -64,7 +64,8 @@ async function refreshRuns(){
       return(data.workflow_runs||[]).map(r=>({...r,__source:source}))
     }));
     const runs=results.flat().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,20);
-    runList.innerHTML=runs.length?runs.map(r=>runRow(r,r.__source)).join(""):'<div class="empty">No release workflow runs yet.</div>';
+    const tracked=releaseJobs.map(j=>`<div class="run"><div class="run-main"><strong>${escapeHtml(SOURCES[j.source].label)} · submitted from Developer Page</strong><span>${j.runNumber?`#${j.runNumber} · `:""}${new Date(j.submittedAt).toLocaleString()}</span><div class="tracked-inputs">${Object.entries(j.inputs||{}).filter(([k])=>k!=="changed_files").map(([k,v])=>`<span>${escapeHtml(k)}: ${escapeHtml(String(v))}</span>`).join("")}</div>${(j.changedFiles||[]).length?`<div class="detection-files">${j.changedFiles.slice(0,40).map(f=>`<div>${escapeHtml(f.status||"M")} · ${escapeHtml(f.filename||f)}</div>`).join("")}</div>`:""}</div><span class="run-state ${stateClass(j.status,j.conclusion)}">${escapeHtml(j.conclusion||j.status||"queued")}</span><div class="run-actions">${j.runUrl?`<a class="run-link" href="${j.runUrl}" target="_blank" rel="noreferrer">Logs</a>`:""}</div></div>`).join("");
+runList.innerHTML=(tracked+runs.map(r=>runRow(r,r.__source)).join(""))||'<div class="empty">No release workflow runs yet.</div>';
   }catch(error){runList.innerHTML=`<div class="empty">${escapeHtml(error.message)}</div>`}
 }
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
