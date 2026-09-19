@@ -33,9 +33,10 @@ async function checkConnection(){
 }
 async function dispatch(source,inputs){
   const cfg=SOURCES[source];
-  const job={key:crypto.randomUUID(),source,sourceRepo:cfg.repo,sourceWorkflow:cfg.workflow,inputs:{...inputs},changedFiles:typeof inputs.changed_files==="string"?(()=>{try{return JSON.parse(inputs.changed_files)}catch{return []}})():inputs.changed_files||[],submittedAt:new Date().toISOString(),status:"queued"};
+  const {__changedFiles,...workflowInputs}=inputs;
+  const job={key:crypto.randomUUID(),source,sourceRepo:cfg.repo,sourceWorkflow:cfg.workflow,inputs:{...workflowInputs},changedFiles:__changedFiles||((typeof workflowInputs.changed_files==="string")?(()=>{try{return JSON.parse(workflowInputs.changed_files)}catch{return []}})():workflowInputs.changed_files||[]),submittedAt:new Date().toISOString(),status:"queued"};
   rememberReleaseJob(job);
-  await github(`/repos/${REPO}/actions/workflows/${cfg.controlWorkflow}/dispatches`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:"main",inputs})});
+  await github(`/repos/${REPO}/actions/workflows/${cfg.controlWorkflow}/dispatches`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:"main",inputs:workflowInputs})});
   setTimeout(()=>findDispatchedRun(job),1500);
   return job;
 }
@@ -116,7 +117,7 @@ $("base-form").addEventListener("submit",async e=>{
   if(!lastDetected.base.length)await draft("base","base-notes","base-version","base-ref");
   const version=$("base-version").value.trim(),channel=$("base-channel").value;
   if(!version){showToast("Version is required.");return}
-  try{const notes=$("base-notes").value.trim();const run=await dispatch("base",{version,channel,notes});showToast(run?.workflow_run?.id?`Base build queued (#${run.workflow_run.run_number||"?"}).`:"Base release workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
+  try{const notes=$("base-notes").value.trim();const run=await dispatch("base",{version,channel,notes,__changedFiles:lastDetected.base});showToast(run?.workflow_run?.id?`Base build queued (#${run.workflow_run.run_number||"?"}).`:"Base release workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 $("update-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
