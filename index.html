@@ -8,182 +8,63 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main class="shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">ORBITFS / DEV</p>
-        <h1>Developer Control Panel</h1>
-        <p class="muted">One-screen release control for the existing OrbitFS GitHub Actions flow. This site prepares and launches jobs; licensing authority stays in License Master.</p>
-      </div>
-      <div class="top-actions">
-        <span id="connection-badge" class="status-badge offline">GitHub not connected</span>
-        <button id="setup-open" class="button ghost">Setup</button>
-      </div>
-    </header>
-
-    <section class="hero-card">
-      <div>
-        <span class="pill system">DEV ONLY</span>
-        <h2>Run the existing release flow without living in Actions</h2>
-        <p class="muted">Choose the release, start the existing control workflow, then watch the run here. No license data or customer credentials live in this website.</p>
-      </div>
-      <div class="hero-side">
-        <div><span>Execution</span><strong>GitHub Actions</strong></div>
-        <div><span>Cross-repo auth</span><strong>GitHub App</strong></div>
-        <div><span>License authority</span><strong>Custom-licence-manager</strong></div>
-      </div>
-    </section>
-
-    <section class="grid">
-      <article class="card release-card">
-        <div class="card-head">
-          <span class="pill base">BASE</span>
-          <span>V1-vercel-base</span>
-        </div>
-        <h2>Base Deployment System</h2>
-        <p>Uses the existing <code>release-to-license-master.yml</code> job for validation, packaging and release handoff.</p>
-
-        <form id="base-form">
-          <label>
-            <span>Version</span>
-            <input id="base-version" name="version" placeholder="1.8.0" required inputmode="decimal">
-          </label>
-          <label>
-            <span>Channel</span>
-            <select id="base-channel" name="channel">
-              <option value="stable">stable</option>
-              <option value="beta">beta</option>
-              <option value="dev">dev</option>
-            </select>
-          </label>
-          <label>
-            <span>Source ref</span>
-            <input id="base-ref" name="source_ref" value="base-release" required>
-          </label>
-          <button class="button primary wide" type="submit">Run Base Release</button>
-        </form>
-
-        <div class="tiny-flow">
-          <span>Validate</span><b>→</b><span>Build</span><b>→</b><span>Package</span><b>→</b><span>License handoff</span>
-        </div>
-      </article>
-
-      <article class="card release-card">
-        <div class="card-head">
-          <span class="pill update">UPDATE</span>
-          <span>V1-vercel-engine</span>
-        </div>
-        <h2>Update Release System</h2>
-        <p>Uses the existing <code>publish-engine-release.yml</code> job and keeps APEX/MCP/Studio selection explicit.</p>
-
-        <form id="update-form">
-          <label>
-            <span>Version</span>
-            <input id="update-version" name="version" placeholder="1.8.0" required inputmode="decimal">
-          </label>
-          <label>
-            <span>Channel</span>
-            <input id="update-channel" name="channel" value="stable" placeholder="stable / beta / dev">
-          </label>
-          <label>
-            <span>Source ref</span>
-            <input id="update-ref" name="source_ref" value="UPDATE_RELEASE" required>
-          </label>
-
-          <div class="addon-grid">
-            <label class="check"><input id="addon-apex" type="checkbox"><span>APEX</span></label>
-            <label class="check"><input id="addon-mcp" type="checkbox"><span>MCP</span></label>
-            <label class="check"><input id="addon-studio" type="checkbox"><span>Studio</span></label>
-          </div>
-
-          <label>
-            <span>Minimum deployer protocol</span>
-            <input id="update-protocol" value="1" required inputmode="numeric">
-          </label>
-
-          <button class="button primary wide" type="submit">Run Update Release</button>
-        </form>
-
-        <div class="tiny-flow">
-          <span>Analyse</span><b>→</b><span>Package</span><b>→</b><span>Release handoff</span>
-        </div>
-      </article>
-    </section>
-
-    <section class="card status-panel">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">LIVE STATUS</span>
-          <h2>Recent release control runs</h2>
-        </div>
-        <button id="refresh-runs" class="button">Refresh</button>
-      </div>
-      <div id="run-list" class="run-list">
-        <div class="empty">Connect GitHub to load recent control runs.</div>
-      </div>
-    </section>
-
-    <section class="card setup-panel">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">ONE-TIME SETUP</span>
-          <h2>Control plane wiring</h2>
-        </div>
-      </div>
-      <div class="setup-grid">
-        <div class="setup-item ok">
-          <strong>Existing release jobs</strong>
-          <span>Base + Engine control workflows are already in this repository.</span>
-        </div>
-        <div class="setup-item">
-          <strong>GitHub App</strong>
-          <span><code>actions/create-github-app-token@v3</code> is used by the control jobs for source-repo dispatch.</span>
-        </div>
-        <div class="setup-item">
-          <strong>Required secrets</strong>
-          <span><code>ORBITFS_RELEASE_APP_ID</code> and <code>ORBITFS_RELEASE_APP_PRIVATE_KEY</code>.</span>
-        </div>
-        <div class="setup-item">
-          <strong>Browser access</strong>
-          <span>Use a fine-grained GitHub token with Actions write on this developer repository. It stays in this browser session.</span>
-        </div>
-      </div>
-      <div class="setup-actions">
-        <a class="button" href="https://github.com/lucaskerim123/OrbitFS-Developer-page/settings/secrets/actions" target="_blank" rel="noreferrer">Open Action Secrets</a>
-        <a class="button" href="https://github.com/lucaskerim123/OrbitFS-Developer-page/actions" target="_blank" rel="noreferrer">Open Actions</a>
-        <a class="button" href="https://github.com/marketplace?type=actions" target="_blank" rel="noreferrer">Browse GitHub Actions</a>
-      </div>
-    </section>
-
-    <footer>
-      <span>OrbitFS Developer Control Panel</span>
-      <span>Developer release control only — no customer licensing authority here.</span>
-    </footer>
-  </main>
-
-  <dialog id="setup-dialog">
-    <form method="dialog" class="dialog-card" id="setup-form">
-      <div class="dialog-head">
-        <div>
-          <span class="eyebrow">GITHUB CONNECTION</span>
-          <h2>Connect this browser</h2>
-        </div>
-        <button class="icon-btn" value="cancel" aria-label="Close">×</button>
-      </div>
-      <p class="muted">Use a fine-grained GitHub token that can run Actions in <code>OrbitFS-Developer-page</code>. It is kept in <code>sessionStorage</code> only and sent only to <code>api.github.com</code>.</p>
-      <label>
-        <span>GitHub token</span>
-        <input id="github-token" type="password" autocomplete="off" placeholder="github_pat_..." required>
-      </label>
-      <div id="setup-message" class="message"></div>
-      <div class="dialog-actions">
-        <button id="connect-button" class="button primary" type="submit" value="connect">Connect & Check</button>
-        <button class="button" value="cancel">Cancel</button>
-      </div>
-    </form>
-  </dialog>
-
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="./app.js"></script>
-</body>
-</html>
+<main class="shell">
+<header class="topbar">
+  <div><p class="eyebrow">ORBITFS / DEV</p><h1>Developer Control Panel</h1><p class="muted">Control the real OrbitFS release workflows without living in GitHub Actions. GitHub Actions remains execution; License Master remains authority.</p></div>
+  <div class="top-actions"><span id="connection-badge" class="status-badge offline">GitHub not connected</span><button id="setup-open" class="button ghost">Setup</button></div>
+</header>
+<section class="hero-card">
+  <div><span class="pill system">DEV ONLY</span><h2>Draft, run and control the real release jobs</h2><p class="muted">The panel talks directly to V1-vercel-base and V1-vercel-engine. It does not create a second release pipeline.</p></div>
+  <div class="hero-side"><div><span>Base execution</span><strong>V1-vercel-base</strong></div><div><span>Update execution</span><strong>V1-vercel-engine</strong></div><div><span>Authority</span><strong>Custom-licence-manager</strong></div></div>
+</section>
+<section class="grid">
+<article class="card release-card">
+  <div class="card-head"><span class="pill base">BASE</span><span>V1-vercel-base</span></div>
+  <h2>Base Deployment</h2><p>Uses the existing <code>release-to-license-master.yml</code> for validation, build, packaging and License Master handoff.</p>
+  <form id="base-form">
+    <div class="form-row"><label><span>Version</span><input id="base-version" placeholder="1.8.0" required inputmode="decimal"></label><label><span>Channel</span><select id="base-channel"><option>stable</option><option>beta</option><option>dev</option></select></label></div>
+    <label><span>Source ref</span><input id="base-ref" value="base-release" required></label>
+    <label><span>Release notes / changelog</span><textarea id="base-notes" placeholder="Optional editable draft. The source workflow currently generates its own changelog."></textarea></label>
+    <div class="action-row"><button class="button" type="button" id="base-draft">Draft from commits</button><button class="button primary" type="submit">Run Base</button></div>
+  </form>
+  <div class="tiny-flow"><span>Validate</span><b>→</b><span>Build</span><b>→</b><span>Package</span><b>→</b><span>License Master draft</span></div>
+</article>
+<article class="card release-card">
+  <div class="card-head"><span class="pill update">UPDATE</span><span>V1-vercel-engine</span></div>
+  <h2>Engine Update</h2><p>Uses the existing <code>publish-engine-release.yml</code> with explicit APEX, MCP and Studio selection.</p>
+  <form id="update-form">
+    <div class="form-row"><label><span>Version</span><input id="update-version" placeholder="1.8.0" required inputmode="decimal"></label><label><span>Channel</span><input id="update-channel" value="stable"></label></div>
+    <label><span>Source ref</span><input id="update-ref" value="UPDATE_RELEASE" required></label>
+    <div class="addon-grid"><label class="check"><input id="addon-apex" type="checkbox"><span>APEX</span></label><label class="check"><input id="addon-mcp" type="checkbox"><span>MCP</span></label><label class="check"><input id="addon-studio" type="checkbox"><span>Studio</span></label></div>
+    <label><span>Minimum deployer protocol</span><input id="update-protocol" value="1" required inputmode="numeric"></label>
+    <label><span>Release notes / changelog</span><textarea id="update-notes" placeholder="Optional editable draft. The source workflow currently generates its own changelog."></textarea></label>
+    <div class="action-row"><button class="button" type="button" id="update-draft">Draft from commits</button><button class="button primary" type="submit">Run Update</button></div>
+  </form>
+  <div class="tiny-flow"><span>Analyse</span><b>→</b><span>Package</span><b>→</b><span>Validate</span><b>→</b><span>License Master draft</span></div>
+</article>
+</section>
+<section class="card status-panel">
+  <div class="section-head"><div><span class="eyebrow">LIVE STATUS</span><h2>Release workflow runs</h2><p class="muted">Runs are read directly from both source repositories.</p></div><button id="refresh-runs" class="button">Refresh</button></div>
+  <div id="run-list" class="run-list"><div class="empty">Connect GitHub to load release runs.</div></div>
+</section>
+<section class="card setup-panel">
+  <div class="section-head"><div><span class="eyebrow">CONNECTION</span><h2>One-time browser setup</h2></div></div>
+  <div class="setup-grid">
+    <div class="setup-item ok"><strong>Existing workflows</strong><span>Base: <code>release-to-license-master.yml</code>. Engine: <code>publish-engine-release.yml</code>.</span></div>
+    <div class="setup-item"><strong>Direct control</strong><span>The page dispatches those source workflows directly. The failing cross-repository App-token bridge is not required by the panel.</span></div>
+    <div class="setup-item"><strong>Token permission</strong><span>Fine-grained token: Actions write on this repository, V1-vercel-base and V1-vercel-engine.</span></div>
+    <div class="setup-item"><strong>Session only</strong><span>The token stays in this browser session and is sent only to GitHub.</span></div>
+  </div>
+</section>
+<footer><span>OrbitFS Developer Control Panel</span><span>Developer control only — no customer licensing authority.</span></footer>
+</main>
+<dialog id="setup-dialog"><form method="dialog" class="dialog-card" id="setup-form">
+  <div class="dialog-head"><div><span class="eyebrow">GITHUB CONNECTION</span><h2>Connect this browser</h2></div><button class="icon-btn" value="cancel" aria-label="Close">×</button></div>
+  <p class="muted">Use a fine-grained GitHub token with Actions write access to the three repositories used by this panel. It is stored in session storage only.</p>
+  <label><span>GitHub token</span><input id="github-token" type="password" autocomplete="off" placeholder="github_pat_..." required></label>
+  <div id="setup-message" class="message"></div>
+  <div class="dialog-actions"><button class="button primary" type="submit">Connect & Check</button><button class="button" value="cancel">Cancel</button></div>
+</form></dialog>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="./app.js"></script>
+</body></html>
