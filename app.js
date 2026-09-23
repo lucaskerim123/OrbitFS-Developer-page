@@ -73,7 +73,7 @@ runList.innerHTML=(tracked+runs.map(r=>runRow(r,r.__source)).join(""))||'<div cl
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
 function detectComponents(files){
   const paths=files.map(x=>x.filename.toLowerCase());
-  return {apex:paths.some(p=>p.includes("apex")||p.includes("sorter")||p.includes("converter")),mcp:paths.some(p=>p.includes("mcp")),studio:paths.some(p=>p.includes("studio")),files:files.length};
+  return {base:paths.some(p=>p.includes("base")),apex:paths.some(p=>p.includes("apex")||p.includes("sorter")||p.includes("converter")),mcp:paths.some(p=>p.includes("mcp")),studio:paths.some(p=>p.includes("studio")),files:files.length};
 }
 function renderDetection(source,files){
   lastDetected[source]=files.slice(0,150).map(f=>({filename:f.filename,status:f.status||"M",additions:f.additions||0,deletions:f.deletions||0}));
@@ -81,9 +81,9 @@ function renderDetection(source,files){
   if(!files.length){target.innerHTML="<strong>No changed files returned.</strong>";return}
   const d=detectComponents(files);
   if(source==="update"){
-    $("addon-apex").checked=d.apex;$("addon-mcp").checked=d.mcp;$("addon-studio").checked=d.studio;
+    $("addon-base").checked=d.base;$("addon-apex").checked=d.apex;$("addon-mcp").checked=d.mcp;$("addon-studio").checked=d.studio;
   }
-  const comps=source==="base"?"Base package":"Detected: "+[d.apex?"APEX":"",d.mcp?"MCP":"",d.studio?"Studio":""].filter(Boolean).join(", ");
+  const comps=source==="base"?"Base package":"Detected: "+[d.base?"Base":"",d.apex?"APEX":"",d.mcp?"MCP":"",d.studio?"Studio":""].filter(Boolean).join(", ");
   const listed=files.slice(0,40).map(f=>`<div>${escapeHtml(f.status||"M")} · ${escapeHtml(f.filename)}</div>`).join("");
   target.innerHTML=`<strong>${escapeHtml(comps)}</strong> · ${d.files} changed file${d.files===1?"":"s"}<div class="detection-files">${listed}</div>`;
 }
@@ -122,9 +122,9 @@ $("base-form").addEventListener("submit",async e=>{
 $("update-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
   if(!lastDetected.update.length)await draft("update","update-notes","update-version","update-ref");
-  const apex=$("addon-apex").checked,mcp=$("addon-mcp").checked,studio=$("addon-studio").checked;
-  if(!apex&&!mcp&&!studio){showToast("Detect changes or select at least one component.");return}
-  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,source_ref:SOURCES.update.ref,apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),notes:$("update-notes").value.trim(),changed_files:JSON.stringify(lastDetected.update)};
+  const base=$("addon-base").checked,apex=$("addon-apex").checked,mcp=$("addon-mcp").checked,studio=$("addon-studio").checked;
+  if(!base&&!apex&&!mcp&&!studio){showToast("Detect changes or select at least one component.");return}
+  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,source_ref:SOURCES.update.ref,base:String(base),apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),minimum_base_version:$("update-min-base").value.trim(),notes:$("update-notes").value.trim(),changed_files:JSON.stringify(lastDetected.update)};
   try{const run=await dispatch("update",inputs);showToast(run?.workflow_run?.id?`Engine update queued (#${run.workflow_run.run_number||"?"}).`:"Engine update workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 function startPolling(){clearInterval(polling);polling=setInterval(()=>{if(document.visibilityState==="visible")refreshRuns()},5000)}
