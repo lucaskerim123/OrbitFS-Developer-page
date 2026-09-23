@@ -1,7 +1,7 @@
 const REPO="lucaskerim123/OrbitFS-Developer-page";
 const SOURCES={
   base:{repo:"lucaskerim123/V1-vercel-base",workflow:"release-to-license-master.yml",ref:"base-release",controlWorkflow:"base-release-control.yml",label:"Base"},
-  update:{repo:"lucaskerim123/V1-vercel-engine",workflow:"publish-engine-release.yml",ref:"UPDATE_RELEASE",controlWorkflow:"update-release-control.yml",label:"Engine Update"}
+  update:{repo:"lucaskerim123/V1-vercel-engine",workflow:"publish-engine-release.yml",ref:"UPDATE_RELEASE",controlWorkflow:"update-release-control.yml",label:"OrbitFS Update"}
 };
 const API="https://api.github.com";
 const TOKEN_KEY="orbitfs_github_token";
@@ -126,7 +126,7 @@ $("update-form").addEventListener("submit",async e=>{
   const base=$("addon-base").checked,apex=$("addon-apex").checked,mcp=$("addon-mcp").checked,studio=$("addon-studio").checked;
   if(!base&&!apex&&!mcp&&!studio){showToast("Detect changes or select at least one component.");return}
   const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,source_ref:SOURCES.update.ref,base:String(base),apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),minimum_base_version:$("update-min-base").value.trim(),notes:$("update-notes").value.trim(),changed_files:JSON.stringify(lastDetected.update)};
-  try{const run=await dispatch("update",inputs);showToast(run?.workflow_run?.id?`Engine update queued (#${run.workflow_run.run_number||"?"}).`:"Engine update workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
+  try{const run=await dispatch("update",inputs);showToast(run?.workflow_run?.id?`Engine update queued (#${run.workflow_run.run_number||"?"}).`:"OrbitFS Update workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 function startPolling(){clearInterval(polling);polling=setInterval(()=>{if(document.visibilityState==="visible")refreshRuns()},5000)}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&token){refreshRuns();startPolling()}});
