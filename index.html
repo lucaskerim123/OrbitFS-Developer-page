@@ -13,7 +13,7 @@
   <div>
     <p class="eyebrow">ORBITFS / RELEASE CONTROL</p>
     <h1>Developer Control Panel</h1>
-    <p class="muted">Prepare Base and Engine releases here. GitHub builds them, License Master validates and technically approves them, and Billing Store performs the final customer-facing review.</p>
+    <p class="muted">Prepare Base and Update releases here. GitHub builds them and License Master validates both. Base releases are published by License Manager; technically approved Updates move to Billing Store for final customer-facing review and publication.</p>
   </div>
   <div class="top-actions">
     <span id="connection-badge" class="status-badge offline">GitHub not connected</span>
@@ -27,7 +27,7 @@
     <h2>One control surface for both release lanes</h2>
     <p class="muted">The panel only dispatches the existing source-repository workflows. It does not become a second release system.</p>
     <div class="pipeline">
-      <span>Developer Panel</span><b>→</b><span>GitHub Build</span><b>→</b><span>License Master</span><b>→</b><span>Billing Review</span><b>→</b><span>Customer Portal</span>
+      <span>Developer Panel</span><b>→</b><span>GitHub Build</span><b>→</b><span>License Manager Gate</span><b>→</b><span>Base Publish / Update Billing Review</span><b>→</b><span>Customer Portal</span>
     </div>
   </div>
   <div class="hero-side">
@@ -65,7 +65,7 @@
 <article class="card release-card">
   <div class="card-head"><span class="pill update">UPDATE</span><span>V1-vercel-engine</span></div>
   <h2>Release Update</h2>
-  <p>Build a differential Engine update and let the source diff determine which Engine-backed components changed.</p>
+  <p>Build an OrbitFS Update Bundle targeting the Base Panel and/or Engine-backed components, with the source diff feeding the release targets and changelog.</p>
   <form id="update-form">
     <div class="form-row">
       <label><span>Update Version</span><input id="update-version" placeholder="1.0.1" required inputmode="decimal"></label>
@@ -102,7 +102,7 @@
     <div><span>01</span><strong>Build</strong><p>Source validation, package creation, manifest and checksum.</p></div>
     <div><span>02</span><strong>Intake</strong><p>Candidate is created in License Master with source and CI metadata.</p></div>
     <div><span>03</span><strong>Technical approval</strong><p>License Master scans the package and approves only after validation passes.</p></div>
-    <div><span>04</span><strong>Customer review</strong><p>Billing Store edits customer presentation and decides publication.</p></div>
+    <div><span>04</span><strong>Publication gate</strong><p>License Manager publishes Base releases. Technically approved Updates go to Billing Store for final customer-facing review and publication.</p></div>
     <div><span>05</span><strong>Delivery</strong><p>Published release appears in the customer Base Deployer or Update Deployer.</p></div>
   </div>
 </section>
@@ -113,7 +113,7 @@
     <div class="setup-item ok"><strong>Source workflows</strong><span>Base: <code>release-to-license-master.yml</code>. Engine: <code>publish-engine-release.yml</code>.</span></div>
     <div class="setup-item"><strong>Browser token</strong><span>Your GitHub token stays in session storage and is sent only to GitHub.</span></div>
     <div class="setup-item"><strong>Required access</strong><span>Actions write on this developer repository, V1-vercel-base and V1-vercel-engine.</span></div>
-    <div class="setup-item"><strong>Authority boundary</strong><span>Release metadata and validation remain in License Master; customer publication remains in Billing Store.</span></div>
+    <div class="setup-item"><strong>Authority boundary</strong><span>License Manager owns technical release authority and Base publication. Billing Store owns commerce and final customer-facing Update publication.</span></div>
   </div>
 </section>
 
