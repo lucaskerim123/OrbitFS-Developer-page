@@ -17,6 +17,11 @@ on:
         required: true
         default: UPDATE_RELEASE
         type: string
+      base:
+        description: "Base system changed by Engine update"
+        required: true
+        default: false
+        type: boolean
       apex:
         description: "APEX changed"
         required: true
@@ -37,6 +42,11 @@ on:
         required: true
         default: "1"
         type: string
+      minimum_base_version:
+        description: "Minimum OrbitFS Base version required by this update"
+        required: true
+        default: "1.0.0"
+        type: string
       notes:
         description: "Draft changelog from Developer Page"
         required: false
@@ -56,12 +66,13 @@ jobs:
     steps:
       - name: Require at least one component
         env:
+          BASE: ${{ inputs.base }}
           APEX: ${{ inputs.apex }}
           MCP: ${{ inputs.mcp }}
           STUDIO: ${{ inputs.studio }}
         run: |
           set -euo pipefail
-          if [ "$APEX" != "true" ] && [ "$MCP" != "true" ] && [ "$STUDIO" != "true" ]; then
+          if [ "$BASE" != "true" ] && [ "$APEX" != "true" ] && [ "$MCP" != "true" ] && [ "$STUDIO" != "true" ]; then
             echo "::error::Select at least one Engine component."
             exit 1
           fi
@@ -72,10 +83,12 @@ jobs:
           VERSION: ${{ inputs.version }}
           CHANNEL: ${{ inputs.channel }}
           SOURCE_REF: ${{ inputs.source_ref }}
+          BASE: ${{ inputs.base }}
           APEX: ${{ inputs.apex }}
           MCP: ${{ inputs.mcp }}
           STUDIO: ${{ inputs.studio }}
           PROTOCOL: ${{ inputs.minimum_deployer_protocol }}
+          MINIMUM_BASE_VERSION: ${{ inputs.minimum_base_version }}
           NOTES: ${{ inputs.notes }}
           CHANGED_FILES: ${{ inputs.changed_files }}
         run: |
@@ -86,10 +99,12 @@ jobs:
             --ref "$SOURCE_REF" \
             -f version="$VERSION" \
             -f channel="$CHANNEL" \
+            -f base="$BASE" \
             -f apex="$APEX" \
             -f mcp="$MCP" \
             -f studio="$STUDIO" \
             -f minimum_deployer_protocol="$PROTOCOL" \
+            -f minimum_base_version="$MINIMUM_BASE_VERSION" \
             -f notes="$NOTES" \
             -f changed_files="$CHANGED_FILES"
           echo "Engine update workflow dispatched for V1-vercel-engine@$SOURCE_REF, version $VERSION."
