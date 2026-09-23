@@ -73,7 +73,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$BASE" != "true" ] && [ "$APEX" != "true" ] && [ "$MCP" != "true" ] && [ "$STUDIO" != "true" ]; then
-            echo "::error::Select at least one Engine component."
+            echo "::error::Select at least one update target (Base, APEX, MCP, or Studio)."
             exit 1
           fi
 
