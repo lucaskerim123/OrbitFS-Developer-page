@@ -6,8 +6,9 @@ const SOURCES={
 const API="https://api.github.com";
 const TOKEN_KEY="orbitfs_github_token";
 const TRACKING_KEY="orbitfs_release_jobs";
-let token=localStorage.getItem(TOKEN_KEY)||sessionStorage.getItem("orbitfs_github_token")||"";
-if(token&&!localStorage.getItem(TOKEN_KEY))localStorage.setItem(TOKEN_KEY,token);
+const legacyToken=localStorage.getItem(TOKEN_KEY)||"";
+let token=sessionStorage.getItem(TOKEN_KEY)||legacyToken;
+if(legacyToken){sessionStorage.setItem(TOKEN_KEY,legacyToken);localStorage.removeItem(TOKEN_KEY);}
 let polling=null;
 let releaseJobs=JSON.parse(localStorage.getItem(TRACKING_KEY)||"[]");
 const lastDetected={base:[],update:[]};
@@ -107,7 +108,7 @@ runList.addEventListener("click",async e=>{
 $("setup-form").addEventListener("submit",async e=>{
   e.preventDefault();const candidate=tokenInput.value.trim();if(!candidate)return;
   const old=token;token=candidate;message.textContent="Checking GitHub access…";
-  try{await checkConnection();localStorage.setItem(TOKEN_KEY,token);dialog.close();showToast("GitHub connected.");await refreshRuns();startPolling()}
+  try{await checkConnection();sessionStorage.setItem(TOKEN_KEY,token);localStorage.removeItem(TOKEN_KEY);dialog.close();showToast("GitHub connected.");await refreshRuns();startPolling()}
   catch(error){token=old;setConnected(false);message.textContent=error.message}
 });
 $("base-draft").addEventListener("click",()=>draft("base","base-notes","base-version","base-ref"));
