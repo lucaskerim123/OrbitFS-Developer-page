@@ -72,11 +72,15 @@
       <label><span>Channel</span><select id="update-channel"><option value="stable">Stable</option><option value="beta">Beta</option><option value="dev">Development</option></select></label>
     </div>
     <div class="addon-grid">
+      <label class="check"><input id="addon-base" type="checkbox"><span>Base</span></label>
       <label class="check"><input id="addon-apex" type="checkbox"><span>APEX</span></label>
       <label class="check"><input id="addon-mcp" type="checkbox"><span>MCP</span></label>
       <label class="check"><input id="addon-studio" type="checkbox"><span>Studio</span></label>
     </div>
-    <label><span>Minimum deployer protocol</span><input id="update-protocol" value="1" required inputmode="numeric"></label>
+    <div class="form-row">
+      <label><span>Minimum deployer protocol</span><input id="update-protocol" value="1" required inputmode="numeric"></label>
+      <label><span>Minimum Base version</span><input id="update-min-base" value="1.0.0" required></label>
+    </div>
     <label><span>Release notes</span><textarea id="update-notes" placeholder="Detect the source diff to draft these automatically."></textarea></label>
     <div class="action-row"><button class="button" type="button" id="update-draft">Detect files & draft changelog</button><button class="button primary" type="submit">Run Update Build</button></div>
   </form>
