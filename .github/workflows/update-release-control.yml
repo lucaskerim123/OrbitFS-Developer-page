@@ -17,11 +17,11 @@ on:
         required: true
         default: UPDATE_RELEASE
         type: string
-      base:
-        description: "Base system changed by Engine update"
+      base_channel:
+        description: "Published Base channel used for compatibility"
         required: true
-        default: false
-        type: boolean
+        default: stable
+        type: string
       apex:
         description: "APEX changed"
         required: true
@@ -66,14 +66,13 @@ jobs:
     steps:
       - name: Require at least one component
         env:
-          BASE: ${{ inputs.base }}
           APEX: ${{ inputs.apex }}
           MCP: ${{ inputs.mcp }}
           STUDIO: ${{ inputs.studio }}
         run: |
           set -euo pipefail
-          if [ "$BASE" != "true" ] && [ "$APEX" != "true" ] && [ "$MCP" != "true" ] && [ "$STUDIO" != "true" ]; then
-            echo "::error::Select at least one update target (Base, APEX, MCP, or Studio)."
+          if [ "$APEX" != "true" ] && [ "$MCP" != "true" ] && [ "$STUDIO" != "true" ]; then
+            echo "::error::Select at least one Engine update target (APEX, MCP, or Studio)."
             exit 1
           fi
 
@@ -89,17 +88,21 @@ jobs:
           STUDIO: ${{ inputs.studio }}
           PROTOCOL: ${{ inputs.minimum_deployer_protocol }}
           MINIMUM_BASE_VERSION: ${{ inputs.minimum_base_version }}
+          BASE_CHANNEL: ${{ inputs.base_channel }}
           NOTES: ${{ inputs.notes }}
           CHANGED_FILES: ${{ inputs.changed_files }}
         run: |
           set -euo pipefail
           test -n "$GH_TOKEN" || { echo "::error::Missing ORBITFS_RELEASE_DISPATCH_TOKEN repository secret."; exit 1; }
+          SOURCE_SHA="$(gh api "repos/lucaskerim123/V1-vercel-engine/commits/$SOURCE_REF" --jq '.sha')"
+          test -n "$SOURCE_SHA" || { echo "::error::Could not resolve Engine source SHA for $SOURCE_REF."; exit 1; }
           gh workflow run publish-engine-release.yml \
             --repo lucaskerim123/V1-vercel-engine \
             --ref "$SOURCE_REF" \
             -f version="$VERSION" \
+            -f source_sha="$SOURCE_SHA" \
             -f channel="$CHANNEL" \
-            -f base="$BASE" \
+            -f base_channel="$BASE_CHANNEL" \
             -f apex="$APEX" \
             -f mcp="$MCP" \
             -f studio="$STUDIO" \
@@ -107,4 +110,4 @@ jobs:
             -f minimum_base_version="$MINIMUM_BASE_VERSION" \
             -f notes="$NOTES" \
             -f changed_files="$CHANGED_FILES"
-          echo "Engine update workflow dispatched for V1-vercel-engine@$SOURCE_REF, version $VERSION."
+          echo "Engine update workflow dispatched for V1-vercel-engine@$SOURCE_REF ($SOURCE_SHA), version $VERSION."
