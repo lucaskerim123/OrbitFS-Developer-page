@@ -1,6 +1,6 @@
 const REPO="lucaskerim123/OrbitFS-Developer-page";
 const SOURCES={
-  base:{repo:"lucaskerim123/V1-vercel-base",workflow:"release-to-license-master.yml",ref:"base-release",controlWorkflow:"base-release-control.yml",label:"Base"},
+  base:{repo:"lucaskerim123/V1-vercel-base",workflow:"publish-base-release.yml",ref:"base-release",controlWorkflow:"base-release-control.yml",label:"Base"},
   update:{repo:"lucaskerim123/V1-vercel-engine",workflow:"publish-engine-release.yml",ref:"UPDATE_RELEASE",controlWorkflow:"update-release-control.yml",label:"OrbitFS Update"}
 };
 const API="https://api.github.com";
