@@ -10,7 +10,7 @@ The page gives a simple UI for launching the existing GitHub Actions release job
 
 ### Base
 
-`base-release` in `V1-vercel-base` → existing Base control workflow → existing `release-to-license-master.yml` job → validation/build/package → License Master handoff.
+`base-release` in `V1-vercel-base` → existing Base control workflow → existing `publish-base-release.yml` job → validation/build/package → License Master handoff.
 
 ### Updates
 
@@ -59,3 +59,8 @@ The existing source release jobs remain the execution layer. This repository doe
 1. **Custom-licence-manager** — licensing authority, license/install/deployment state and enforcement.
 2. **V2_Billing_Store** — customer/admin portal and customer deployment/update experience.
 3. **OrbitFS-Developer-page** — developer-only release control UI and Actions orchestration.
+
+
+## Extended release versions
+
+Release version inputs support numeric OrbitFS versions with optional `V`, `B`, or `D` prefixes and an optional dot after the prefix. Examples include `1.0.0`, `v1.0.0.0`, `v.1.0.0`, `B0.0.0`, and `D.0.0.0`. The prefix describes the version line; the selected License Manager channel remains independent, so a `D` version may be sent to any configured release channel. Normal Engine Updates contain APEX, MCP, and/or Studio changes only; Base changes use the Base release lane.
