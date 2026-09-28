@@ -36,7 +36,8 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$VERSION"
-          case "$CHANNEL" in stable|beta|dev) ;; *) echo "::error::Invalid release channel: $CHANNEL"; exit 1;; esac
+          test -n "$CHANNEL" || { echo "::error::Release channel is required."; exit 1; }
+          [[ "$CHANNEL" =~ ^[a-z0-9][a-z0-9_-]{0,31}$ ]] || { echo "::error::Invalid release channel syntax: $CHANNEL"; exit 1; }
 
       - name: Dispatch Base release workflow
         env:
