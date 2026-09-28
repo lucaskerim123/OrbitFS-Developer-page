@@ -53,7 +53,7 @@
   <p>The complete deployable OrbitFS Base package. Base is normally released rarely; this lane is for full installation/deployment builds.</p>
   <form id="base-form">
     <div class="form-row">
-      <label><span>Version</span><input id="base-version" placeholder="1.0.2" required inputmode="decimal"></label>
+      <label><span>Version</span><input id="base-version" placeholder="1.0.0 / v1.0.0.0 / B0.0.0 / D.0.0.0" required inputmode="text" autocomplete="off"></label>
       <label><span>Channel</span><select id="base-channel"><option value="stable">Stable</option><option value="beta">Beta</option><option value="dev">Development</option></select></label>
     </div>
     <label><span>Release notes</span><textarea id="base-notes" placeholder="Generate a draft from the source diff before running the build."></textarea></label>
@@ -68,7 +68,7 @@
   <p>Build an OrbitFS Update Bundle targeting the Base Panel and/or Engine-backed components, with the source diff feeding the release targets and changelog.</p>
   <form id="update-form">
     <div class="form-row">
-      <label><span>Update Version</span><input id="update-version" placeholder="1.0.1" required inputmode="decimal"></label>
+      <label><span>Update Version</span><input id="update-version" placeholder="1.0.0 / v.1.0.0 / B0.0.0 / D.0.0.0" required inputmode="text" autocomplete="off"></label>
       <label><span>Channel</span><select id="update-channel"><option value="stable">Stable</option><option value="beta">Beta</option><option value="dev">Development</option></select></label>
     </div>
     <div class="addon-grid">
@@ -79,7 +79,7 @@
     </div>
     <div class="form-row">
       <label><span>Minimum deployer protocol</span><input id="update-protocol" value="1" required inputmode="numeric"></label>
-      <label><span>Minimum Base version</span><input id="update-min-base" value="1.0.0" required></label>
+      <label><span>Minimum Base version</span><input id="update-min-base" value="1.0.0" required inputmode="text" autocomplete="off"></label>
     </div>
     <label><span>Release notes</span><textarea id="update-notes" placeholder="Detect the source diff to draft these automatically."></textarea></label>
     <div class="action-row"><button class="button" type="button" id="update-draft">Detect files & draft changelog</button><button class="button primary" type="submit">Run Update Build</button></div>
@@ -110,7 +110,7 @@
 <section class="card setup-panel">
   <div class="section-head"><div><span class="eyebrow">CONNECTION</span><h2>One-time browser setup</h2></div></div>
   <div class="setup-grid">
-    <div class="setup-item ok"><strong>Source workflows</strong><span>Base: <code>release-to-license-master.yml</code>. Engine: <code>publish-engine-release.yml</code>.</span></div>
+    <div class="setup-item ok"><strong>Source workflows</strong><span>Base: <code>publish-base-release.yml</code>. Engine: <code>publish-engine-release.yml</code>.</span></div>
     <div class="setup-item"><strong>Browser token</strong><span>Your GitHub token stays in session storage and is sent only to GitHub.</span></div>
     <div class="setup-item"><strong>Required access</strong><span>Actions write on this developer repository, V1-vercel-base and V1-vercel-engine.</span></div>
     <div class="setup-item"><strong>Authority boundary</strong><span>License Manager owns technical release authority and Base publication. Billing Store owns commerce and final customer-facing Update publication.</span></div>
