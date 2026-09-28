@@ -82,7 +82,8 @@ function renderDetection(source,files){
   if(!files.length){target.innerHTML="<strong>No changed files returned.</strong>";return}
   const d=detectComponents(files);
   if(source==="update"){
-    $("addon-base").checked=d.base;$("addon-apex").checked=d.apex;$("addon-mcp").checked=d.mcp;$("addon-studio").checked=d.studio;
+    $("addon-apex").checked=d.apex;$("addon-mcp").checked=d.mcp;$("addon-studio").checked=d.studio;
+    if(d.base)showToast("Base changes were detected. Ship Base changes through the Base release lane, not the normal Engine Update lane.");
   }
   const comps=source==="base"?"Base package":"Detected: "+[d.base?"Base":"",d.apex?"APEX":"",d.mcp?"MCP":"",d.studio?"Studio":""].filter(Boolean).join(", ");
   const listed=files.slice(0,40).map(f=>`<div>${escapeHtml(f.status||"M")} · ${escapeHtml(f.filename)}</div>`).join("");
@@ -123,9 +124,9 @@ $("base-form").addEventListener("submit",async e=>{
 $("update-form").addEventListener("submit",async e=>{
   e.preventDefault();if(!token&&!(await checkConnection()))return dialog.showModal();
   if(!lastDetected.update.length)await draft("update","update-notes","update-version","update-ref");
-  const base=$("addon-base").checked,apex=$("addon-apex").checked,mcp=$("addon-mcp").checked,studio=$("addon-studio").checked;
-  if(!base&&!apex&&!mcp&&!studio){showToast("Detect changes or select at least one component.");return}
-  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,source_ref:SOURCES.update.ref,base:String(base),apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),minimum_base_version:$("update-min-base").value.trim(),notes:$("update-notes").value.trim(),changed_files:JSON.stringify(lastDetected.update)};
+  const apex=$("addon-apex").checked,mcp=$("addon-mcp").checked,studio=$("addon-studio").checked;
+  if(!apex&&!mcp&&!studio){showToast("Detect changes or select at least one Engine component.");return}
+  const inputs={version:$("update-version").value.trim(),channel:$("update-channel").value,base_channel:$("update-base-channel").value,source_ref:SOURCES.update.ref,apex:String(apex),mcp:String(mcp),studio:String(studio),minimum_deployer_protocol:$("update-protocol").value.trim(),minimum_base_version:$("update-min-base").value.trim(),notes:$("update-notes").value.trim(),changed_files:JSON.stringify(lastDetected.update)};
   try{const run=await dispatch("update",inputs);showToast(run?.workflow_run?.id?`Engine update queued (#${run.workflow_run.run_number||"?"}).`:"OrbitFS Update workflow queued.");setTimeout(refreshRuns,1000)}catch(error){showToast(error.message)}
 });
 function startPolling(){clearInterval(polling);polling=setInterval(()=>{if(document.visibilityState==="visible")refreshRuns()},5000)}
